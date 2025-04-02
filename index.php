@@ -21,7 +21,14 @@
 <body class="bg-gray-100">
     <!-- Sidebar -->
     <aside class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white p-5 z-20">
-
+        <p class="font-bold text-3xl">Apothecare<p><br>
+        <p class="cursor-pointer text-xl">Administrator</p><br>
+        <p class="cursor-pointer hover:text-teal-700 transistion-colors">Dashboard</p>
+        <p class="cursor-pointer hover:text-teal-700 transistion-colors">Orders</p>
+        <p class="cursor-pointer hover:text-teal-700 transistion-colors">Customers</p>
+        <p class="cursor-pointer hover:text-teal-700 transistion-colors">Inventory</p>
+        <p class="cursor-pointer hover:text-teal-700 transistion-colors">Analytics</p>
+        <p class="cursor-pointer hover:text-teal-700 transistion-colors">Settings</p>
     </aside>
 
     <!-- Topnav -->
