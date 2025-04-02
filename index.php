@@ -32,12 +32,21 @@
     <!-- Main content -->
     <main class="p-6">
         <!-- Cards Row -->
-    <div class="flex gap-4">
-        <div class="w-70 h-50 bg-gray-300 p-5 rounded-lg"></div>
-        <div class="w-70 h-50 bg-gray-300 p-5 rounded-lg"></div>
-        <div class="w-70 h-50 bg-gray-300 p-5 rounded-lg"></div>
-        <div class="w-70 h-50 bg-gray-300 p-5 rounded-lg"></div>
-    </div>
+        <div class="flex gap-4">
+            <div class="w-70 h-40 bg-gray-300 p-5 rounded-lg"></div>
+            <div class="w-70 h-40 bg-gray-300 p-5 rounded-lg"></div>
+            <div class="w-70 h-40 bg-gray-300 p-5 rounded-lg"></div>
+            <div class="w-70 h-40 bg-gray-300 p-5 rounded-lg"></div>
+        </div>
+
+        <div class="flex pt-6">
+            <div class="w-2780 h-40 bg-gray-300 rounded-lg"></div>
+        </div>
+
+        <div class="flex gap-2 pt-6">
+            <div class="w-145 h-40 bg-gray-300 p-5 rounded-lg"></div>
+            <div class="w-145 h-40 bg-gray-300 p-5 rounded-lg"></div>
+        </div>
     </main>
 </body>
 </html>
