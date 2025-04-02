@@ -29,7 +29,7 @@
         <form action="" method="POST">
             Naam: <input type="text" name="naam" required><br>
             Adres: <input type="text" name="adres" required><br>
-            Telefoonnummer: <input type="text" name="telefoonnummer" required><br>
+            Telefoonnummer: <input type="tel" name="telefoonnummer" required><br>
             Email: <input type="email" name="email" required><br>
             Wachtwoord: <input type="password" name="wachtwoord" required><br>
             <input type="submit" name="register" value="Registreren">
