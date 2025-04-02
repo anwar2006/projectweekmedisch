@@ -21,8 +21,11 @@
 <body class="bg-gray-100">
     <!-- Sidebar -->
     <aside class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white p-5 z-20">
+    <!--Tekst font is bold en de tekst is 3 keer zo groot.-->
         <p class="font-bold text-3xl">Apothecare<p><br>
+    <!--De cursor is een pointer en de tekst is 1 keer zo groot.-->
         <p class="cursor-pointer text-xl">Administrator</p><br>
+    <!--De cursor is op pointer gezet, tekst wordt teal wanneer je er overheen gaat en dat is een transistion.-->
         <p class="cursor-pointer hover:text-teal-700 transistion-colors">Dashboard</p>
         <p class="cursor-pointer hover:text-teal-700 transistion-colors">Orders</p>
         <p class="cursor-pointer hover:text-teal-700 transistion-colors">Customers</p>
@@ -40,6 +43,7 @@
     <main class="p-6">
         <!-- Cards Row -->
         <div class="flex gap-4">
+    <!--De breedte is 70, de hoogte is 40, achtergrond is grijs, de padding is 5 en de hoeken zijn rond.-->
             <div class="w-70 h-40 bg-gray-300 p-5 rounded-lg"></div>
             <div class="w-70 h-40 bg-gray-300 p-5 rounded-lg"></div>
             <div class="w-70 h-40 bg-gray-300 p-5 rounded-lg"></div>
@@ -47,10 +51,12 @@
         </div>
 
         <div class="flex pt-6">
+    <!--breedte is 2780, hoogte is 40, achtergrond is grijs en de hoeken zijn rond.-->
             <div class="w-2780 h-40 bg-gray-300 rounded-lg"></div>
         </div>
 
         <div class="flex gap-2 pt-6">
+    <!--breedte is 145, hoogte is 40, achtergrond is grijs, de padding is 5 en de hoeken zijn rond.-->
             <div class="w-145 h-40 bg-gray-300 p-5 rounded-lg"></div>
             <div class="w-145 h-40 bg-gray-300 p-5 rounded-lg"></div>
         </div>
