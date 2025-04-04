@@ -1,0 +1,83 @@
+/* Chatbot Styles */
+#chatbot-widget {
+    transition: all 0.3s ease;
+}
+
+#chat-button {
+    width: 60px;
+    height: 60px;
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+#chat-button:hover {
+    transform: scale(1.05);
+}
+
+#chat-window {
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    max-width: 90vw;
+    z-index: 998;
+}
+
+#chat-messages {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+#chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.chat-message {
+    margin-bottom: 12px;
+}
+
+.chat-message p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.typing-animation .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #777;
+    margin-right: 3px;
+    animation: typing 1.5s infinite ease-in-out;
+}
+
+.typing-animation .dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-animation .dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+}
+
+/* Chat quick reply buttons */
+.quick-reply-btn {
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.quick-reply-btn:hover {
+    transform: translateY(-2px);
+} 
