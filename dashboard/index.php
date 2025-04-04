@@ -18,66 +18,36 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'overview';
         </div>
         
         <nav class="mt-4">
-            <ul>
-                <li>
-                    <a href="index.php?page=dashboard&action=overview" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'overview' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-tachometer-alt w-6"></i>
-                        <span>Overview</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?page=dashboard&action=orders" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'orders' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-shopping-cart w-6"></i>
-                        <span>Orders</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?page=dashboard&action=products" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'products' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-pills w-6"></i>
-                        <span>Products</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?page=dashboard&action=prescriptions" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'prescriptions' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-file-prescription w-6"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?page=dashboard&action=customers" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'customers' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-users w-6"></i>
-                        <span>Customers</span>
-                    </a>
-                </li>
-                <?php if ($_SESSION['user_role'] === 'admin'): ?>
-                <li>
-                    <a href="index.php?page=dashboard&action=staff" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'staff' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-user-shield w-6"></i>
-                        <span>Staff Management</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?page=dashboard&action=reports" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'reports' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-chart-bar w-6"></i>
-                        <span>Reports</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?page=dashboard&action=settings" 
-                        class="flex items-center px-4 py-3 <?php echo $action === 'settings' ? 'bg-gray-900' : 'hover:bg-gray-700'; ?> transition-colors">
-                        <i class="fas fa-cog w-6"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-                <?php endif; ?>
-            </ul>
+            <div class="flex flex-col space-y-2">
+                <a href="index.php?page=dashboard&action=overview" class="flex items-center p-3 rounded-lg hover:bg-gray-100 <?php echo $action == 'overview' ? 'bg-gray-100' : ''; ?>">
+                    <i class="fas fa-chart-line w-6 text-gray-500"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="index.php?page=dashboard&action=orders" class="flex items-center p-3 rounded-lg hover:bg-gray-100 <?php echo $action == 'orders' ? 'bg-gray-100' : ''; ?>">
+                    <i class="fas fa-shopping-cart w-6 text-gray-500"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="index.php?page=dashboard&action=products" class="flex items-center p-3 rounded-lg hover:bg-gray-100 <?php echo $action == 'products' ? 'bg-gray-100' : ''; ?>">
+                    <i class="fas fa-box w-6 text-gray-500"></i>
+                    <span>Products</span>
+                </a>
+                <a href="index.php?page=dashboard&action=prescriptions" class="flex items-center p-3 rounded-lg hover:bg-gray-100 <?php echo $action == 'prescriptions' ? 'bg-gray-100' : ''; ?>">
+                    <i class="fas fa-prescription w-6 text-gray-500"></i>
+                    <span>Prescriptions</span>
+                </a>
+                <a href="index.php?page=dashboard&action=customers" class="flex items-center p-3 rounded-lg hover:bg-gray-100 <?php echo $action == 'customers' ? 'bg-gray-100' : ''; ?>">
+                    <i class="fas fa-users w-6 text-gray-500"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="index.php?page=dashboard&action=messages" class="flex items-center p-3 rounded-lg hover:bg-gray-100 <?php echo $action == 'messages' ? 'bg-gray-100' : ''; ?>">
+                    <i class="fas fa-envelope w-6 text-gray-500"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="index.php?page=dashboard&action=reports" class="flex items-center p-3 rounded-lg hover:bg-gray-100 <?php echo $action == 'reports' ? 'bg-gray-100' : ''; ?>">
+                    <i class="fas fa-chart-bar w-6 text-gray-500"></i>
+                    <span>Reports</span>
+                </a>
+            </div>
         </nav>
     </div>
     
@@ -103,14 +73,11 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'overview';
                     case 'customers':
                         echo 'Customer Management';
                         break;
-                    case 'staff':
-                        echo 'Staff Management';
+                    case 'messages':
+                        echo 'Messages';
                         break;
                     case 'reports':
                         echo 'Reports & Analytics';
-                        break;
-                    case 'settings':
-                        echo 'System Settings';
                         break;
                     default:
                         echo 'Dashboard';
@@ -161,29 +128,11 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'overview';
                 case 'customers':
                     include 'dashboard/customers.php';
                     break;
-                case 'staff':
-                    if ($_SESSION['user_role'] === 'admin') {
-                        include 'dashboard/staff.php';
-                    } else {
-                        include 'dashboard/unauthorized.php';
-                    }
+                case 'messages':
+                    include 'dashboard/messages.php';
                     break;
                 case 'reports':
-                    if ($_SESSION['user_role'] === 'admin') {
-                        include 'dashboard/reports.php';
-                    } else {
-                        include 'dashboard/unauthorized.php';
-                    }
-                    break;
-                case 'settings':
-                    if ($_SESSION['user_role'] === 'admin') {
-                        include 'dashboard/settings.php';
-                    } else {
-                        include 'dashboard/unauthorized.php';
-                    }
-                    break;
-                case 'profile':
-                    include 'dashboard/profile.php';
+                    include 'dashboard/reports.php';
                     break;
                 default:
                     include 'dashboard/overview.php';

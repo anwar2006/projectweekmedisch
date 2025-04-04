@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(20),
     password VARCHAR(255) NOT NULL,
     role ENUM('customer', 'staff', 'admin') NOT NULL DEFAULT 'customer',
+    profile_picture VARCHAR(255),
     created_at DATETIME NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

@@ -41,6 +41,9 @@ switch ($page) {
     case 'product':
         include 'pages/product.php';
         break;
+    case 'profile':
+        include 'pages/profile.php';
+        break;
     case 'dashboard':
         // Check if user is logged in and is admin
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || !$_SESSION['is_admin']) {
