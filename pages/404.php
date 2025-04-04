@@ -1,3 +1,4 @@
+
 <?php
 // Set HTTP response code to 404
 http_response_code(404);
