@@ -117,6 +117,11 @@
                     <li class="px-4 py-2">
                         <a href="index.php?page=contact" class="hover:text-light transition-colors <?php echo $page === 'contact' ? 'font-bold' : ''; ?>">Contact</a>
                     </li>
+                    <li class="px-4 py-2">
+                        <a href="index.php?page=chatbot" class="hover:text-light transition-colors <?php echo $page === 'chatbot' ? 'font-bold' : ''; ?>">
+                            <i class="fas fa-robot mr-1"></i>Assistant
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
