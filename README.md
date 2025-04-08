@@ -96,3 +96,50 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Email: admin@admin.com
 Password: admin123
+
+# Apothecare Chatbot
+
+A Node.js chatbot powered by Mistral AI for the Apothecare platform.
+
+## Setup
+
+1. Make sure you have Node.js installed on your system
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in the root directory with your Mistral AI API key:
+   ```
+   MISTRAL_API_KEY=your_api_key_here
+   PORT=3000
+   ```
+
+## Running the Chatbot
+cd api/chatbot
+
+1. Start the server:
+   ```bash
+   node index.js
+
+   ```
+2. Open your browser and navigate to `http://localhost:3000`
+3. Start chatting with the AI assistant!
+
+## Features
+
+- Real-time chat interface
+- Powered by Mistral AI
+- Responsive design
+- Error handling and user feedback
+
+## API Endpoints
+
+- `POST /api/chat`: Send messages to the chatbot
+  - Request body: `{ "message": "your message here" }`
+  - Response: `{ "success": true, "message": "Success", "response": "AI response" }`
+
+## Security
+
+- API keys are stored in environment variables
+- CORS enabled for local development
+- Input validation and error handling 

@@ -1,20 +1,25 @@
 <?php
 // Get all prescriptions with product and user information
 try {
+    // First, let's check if we can connect to the database
+    $test = $pdo->query("SELECT 1");
+    error_log("Database connection test successful");
+    
+    // Simplified query to get prescriptions
     $stmt = $pdo->prepare("
         SELECT p.*, 
                pr.name as product_name,
-               u.first_name, u.last_name, u.email,
-               COUNT(DISTINCT o.id) as total_orders
+               u.first_name, u.last_name, u.email
         FROM prescriptions p
         LEFT JOIN products pr ON p.product_id = pr.id
         LEFT JOIN users u ON p.user_id = u.id
-        LEFT JOIN orders o ON p.id = o.prescription_id
-        GROUP BY p.id
         ORDER BY p.created_at DESC
     ");
     $stmt->execute();
     $prescriptions = $stmt->fetchAll();
+    
+    error_log("Found " . count($prescriptions) . " prescriptions");
+    
 } catch (PDOException $e) {
     $prescriptions = [];
     error_log("Error fetching prescriptions: " . $e->getMessage());
@@ -56,6 +61,9 @@ $statuses = [
     <div class="text-center py-8">
         <i class="fas fa-file-prescription text-gray-300 text-5xl mb-4"></i>
         <p class="text-gray-500">No prescriptions found</p>
+        <?php if (isset($e)): ?>
+        <p class="text-red-500 mt-2">Error: <?php echo $e->getMessage(); ?></p>
+        <?php endif; ?>
     </div>
     <?php else: ?>
     
@@ -100,53 +108,39 @@ $statuses = [
                             <?php endif; ?>
                         </div>
                     </td>
+                    <td class="py-4 px-4 text-center"><?php echo $prescription['doctor_name']; ?></td>
                     <td class="py-4 px-4 text-center">
-                        <div class="text-sm">
-                            <div><?php echo $prescription['doctor_name']; ?></div>
-                            <?php if ($prescription['doctor_license']): ?>
-                            <div class="text-gray-500">License: <?php echo $prescription['doctor_license']; ?></div>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                    <td class="py-4 px-4 text-center">
-                        <span class="px-2 py-1 rounded-full text-sm 
+                        <span class="px-2 py-1 rounded text-xs 
                             <?php 
                             switch ($prescription['status']) {
-                                case 'pending':
-                                    echo 'bg-yellow-100 text-yellow-800';
-                                    break;
                                 case 'approved':
                                     echo 'bg-green-100 text-green-800';
+                                    break;
+                                case 'pending':
+                                    echo 'bg-yellow-100 text-yellow-800';
                                     break;
                                 case 'rejected':
                                     echo 'bg-red-100 text-red-800';
                                     break;
+                                default:
+                                    echo 'bg-gray-100 text-gray-800';
                             }
-                            ?>">
-                            <?php echo $statuses[$prescription['status']]; ?>
+                            ?>
+                        ">
+                            <?php echo ucfirst($prescription['status']); ?>
                         </span>
                     </td>
-                    <td class="py-4 px-4">
-                        <div class="text-sm">
-                            <div>Submitted: <?php echo date('M d, Y', strtotime($prescription['created_at'])); ?></div>
-                            <?php if ($prescription['expiry_date']): ?>
-                            <div class="text-gray-500">Expires: <?php echo date('M d, Y', strtotime($prescription['expiry_date'])); ?></div>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                    <td class="py-4 px-4">
+                    <td class="py-4 px-4"><?php echo date('M d, Y', strtotime($prescription['created_at'])); ?></td>
+                    <td class="py-4 px-4 text-center">
                         <div class="flex justify-center space-x-2">
-                            <button onclick="viewPrescription(<?php echo $prescription['id']; ?>)" 
-                                class="text-blue-500 hover:text-blue-700 transition-colors" title="View Details">
+                            <a href="<?php echo $prescription['prescription_file']; ?>" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Prescription">
                                 <i class="fas fa-eye"></i>
-                            </button>
+                            </a>
                             <?php if ($prescription['status'] === 'pending'): ?>
-                            <button onclick="approvePrescription(<?php echo $prescription['id']; ?>)" 
-                                class="text-green-500 hover:text-green-700 transition-colors" title="Approve">
+                            <button onclick="updatePrescriptionStatus(<?php echo $prescription['id']; ?>, 'approved')" class="text-green-500 hover:text-green-700" title="Approve">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button onclick="rejectPrescription(<?php echo $prescription['id']; ?>)" 
-                                class="text-red-500 hover:text-red-700 transition-colors" title="Reject">
+                            <button onclick="updatePrescriptionStatus(<?php echo $prescription['id']; ?>, 'rejected')" class="text-red-500 hover:text-red-700" title="Reject">
                                 <i class="fas fa-times"></i>
                             </button>
                             <?php endif; ?>
@@ -161,28 +155,33 @@ $statuses = [
 </div>
 
 <script>
-function viewPrescription(prescriptionId) {
-    // Implement view prescription details
-    alert('View prescription details functionality to be implemented');
-}
-
-function approvePrescription(prescriptionId) {
-    if (confirm('Are you sure you want to approve this prescription?')) {
-        // Implement approve prescription
-        alert('Approve prescription functionality to be implemented');
-    }
-}
-
-function rejectPrescription(prescriptionId) {
-    if (confirm('Are you sure you want to reject this prescription?')) {
-        // Implement reject prescription
-        alert('Reject prescription functionality to be implemented');
+function updatePrescriptionStatus(prescriptionId, status) {
+    if (confirm('Are you sure you want to ' + status + ' this prescription?')) {
+        fetch('actions/update_prescription_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'prescription_id=' + prescriptionId + '&status=' + status
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating prescription status: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the prescription status.');
+        });
     }
 }
 
 function exportPrescriptions() {
-    // Implement export prescriptions to CSV/Excel
-    alert('Export prescriptions functionality to be implemented');
+    // Implementation for exporting prescriptions
+    alert('Export functionality will be implemented soon.');
 }
 
 // Search functionality

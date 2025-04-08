@@ -5,14 +5,14 @@ $page_title = "Apothecare Assistant";
 <div class="chatbot-page" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
     <div class="chatbot-header" style="text-align: center; margin-bottom: 30px;">
         <h1 style="color: #2196F3; margin-bottom: 10px;">Apothecare Assistant</h1>
-        <p style="color: #666;">Your personal pharmacy assistant, powered by DeepSeek AI</p>
+        <p style="color: #666;">Your personal pharmacy assistant, powered by Mistral AI</p>
     </div>
 
     <div class="chatbot-container" style="background-color: white; border-radius: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); overflow: hidden;">
         <!-- Chat Messages -->
         <div id="chat-messages" style="height: 500px; overflow-y: auto; padding: 20px; background-color: #f9f9f9;">
             <div class="message bot-message" style="background-color: #f1f1f1; padding: 15px 20px; border-radius: 15px; margin-bottom: 15px; max-width: 80%; word-wrap: break-word;">
-                Hello! I'm your Apothecare Assistant, powered by DeepSeek AI. I can help you with:
+                Hello! I'm your Apothecare Assistant, powered by Mistral AI. I can help you with:
                 <ul style="margin: 10px 0; padding-left: 20px;">
                     <li>Medication information and advice</li>
                     <li>Prescription queries</li>
@@ -156,11 +156,13 @@ $page_title = "Apothecare Assistant";
             const typingIndicator = showTypingIndicator();
 
             try {
-                const response = await fetch('http://localhost:3000/api/chat', {
+                const response = await fetch('http://localhost:7860/api/chat', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ message })
                 });
 
@@ -181,7 +183,7 @@ $page_title = "Apothecare Assistant";
             } catch (error) {
                 console.error('Error:', error);
                 removeTypingIndicator(typingIndicator);
-                addMessage('Error connecting to server. Please make sure the chatbot server is running.', 'error');
+                addMessage('Error connecting to server. Please make sure the chatbot server is running on port 7860.', 'error');
             } finally {
                 // Re-enable input and button
                 messageInput.disabled = false;

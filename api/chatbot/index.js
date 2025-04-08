@@ -3,12 +3,19 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
-
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 7860;
+
+// CORS configuration
+const corsOptions = {
+    origin: ['http://localhost', 'http://localhost:80', 'http://127.0.0.1', 'http://127.0.0.1:80'],
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -17,8 +24,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// DeepSeek AI API endpoint
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+// Mistral AI API endpoint
+const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
 
 // Chat endpoint
 app.post('/api/chat', async (req, res) => {
@@ -32,11 +39,11 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        console.log('Sending request to DeepSeek API...');
+        console.log('Sending request to Mistral AI API...');
         console.log('Message:', message);
 
         const response = await axios.post(
-            DEEPSEEK_API_URL,
+            MISTRAL_API_URL,
             {
                 messages: [
                     {
@@ -44,14 +51,14 @@ app.post('/api/chat', async (req, res) => {
                         content: message
                     }
                 ],
-                model: 'deepseek-chat',
+                model: 'mistral-tiny',
                 max_tokens: 1000,
                 temperature: 0.7,
                 stream: false
             },
             {
                 headers: {
-                    'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+                    'Authorization': `Bearer ${process.env.MISTRAL_API_KEY}`,
                     'Content-Type': 'application/json'
                 }
             }
@@ -82,5 +89,5 @@ app.post('/api/chat', async (req, res) => {
 // Start server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-    console.log(`API Key configured: ${process.env.DEEPSEEK_API_KEY ? 'Yes' : 'No'}`);
+    console.log(`API Key configured: ${process.env.MISTRAL_API_KEY ? 'Yes' : 'No'}`);
 }); 

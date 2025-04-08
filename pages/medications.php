@@ -80,7 +80,7 @@ if (empty($medications)) {
             'name' => 'Paracetamol 500mg',
             'price' => 5.99,
             'description' => 'Pain relief tablets for headaches, pain and fever. Pack of 16 tablets.',
-            'image' => 'assets/images/products/paracetamol.jpg',
+            'image' => 'assets/images/products/prd-front-5568144-2-600x600.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 50
         ],
