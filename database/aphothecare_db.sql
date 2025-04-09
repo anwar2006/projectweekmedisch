@@ -184,6 +184,19 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Cart items table
+CREATE TABLE IF NOT EXISTS cart_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_product (user_id, product_id)
+);
+
 -- Create admin user (password: admin123)
 INSERT INTO users (first_name, last_name, email, password, role, created_at) VALUES
 ('Admin', 'User', 'admin@aphothecare.com', '$2y$10$8z3V4v3HJq9XjgV5Y5W6UO8ivTY4B5HH62S1U1ygCTKvTCq0AeIxy', 'admin', NOW());

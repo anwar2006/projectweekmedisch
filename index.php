@@ -35,7 +35,7 @@ switch ($page) {
     case 'login':
         include 'pages/login.php';
         break;
-    case 'register':
+    case 'register':    
         include 'pages/register.php';
         break;
     case 'product':

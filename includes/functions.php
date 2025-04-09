@@ -6,30 +6,47 @@ function formatPrice($price) {
 
 // Get cart items count
 function getCartItemsCount() {
-    if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
+    global $pdo;
+    
+    if (!isset($_SESSION['user_id'])) {
         return 0;
     }
     
-    $count = 0;
-    foreach ($_SESSION['cart'] as $item) {
-        $count += $item['quantity'];
+    try {
+        $stmt = $pdo->prepare("
+            SELECT COALESCE(SUM(quantity), 0) as total_items
+            FROM cart_items
+            WHERE user_id = :user_id
+        ");
+        $stmt->execute(['user_id' => $_SESSION['user_id']]);
+        return (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+        error_log("Error getting cart count: " . $e->getMessage());
+        return 0;
     }
-    
-    return $count;
 }
 
 // Calculate cart total
 function getCartTotal() {
-    if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
+    global $pdo;
+    
+    if (!isset($_SESSION['user_id'])) {
         return 0;
     }
     
-    $total = 0;
-    foreach ($_SESSION['cart'] as $item) {
-        $total += $item['price'] * $item['quantity'];
+    try {
+        $stmt = $pdo->prepare("
+            SELECT COALESCE(SUM(ci.quantity * p.price), 0) as total
+            FROM cart_items ci
+            JOIN products p ON ci.product_id = p.id
+            WHERE ci.user_id = :user_id
+        ");
+        $stmt->execute(['user_id' => $_SESSION['user_id']]);
+        return (float)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+        error_log("Error calculating cart total: " . $e->getMessage());
+        return 0;
     }
-    
-    return $total;
 }
 
 // Get product details by ID

@@ -88,7 +88,7 @@
                     <a href="index.php?page=cart" class="relative flex items-center text-gray-700 hover:text-primary transition-colors">
                         <i class="fas fa-shopping-cart text-xl mr-2"></i>
                         <span class="hidden md:inline">Cart</span>
-                        <?php if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])): ?>
+                        <?php if (isset($_SESSION['user_id']) && getCartItemsCount() > 0): ?>
                         <span class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                             <?php echo getCartItemsCount(); ?>
                         </span>

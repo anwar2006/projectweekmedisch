@@ -1,16 +1,38 @@
 <?php
-// Check if cart is empty
-if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
-    $_SESSION['flash_message'] = "Your cart is empty. Please add some items before checkout.";
-    $_SESSION['flash_type'] = "yellow";
+// Get cart items from database
+try {
+    $stmt = $pdo->prepare("
+        SELECT ci.*, p.name, p.price, p.image 
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        WHERE ci.user_id = :user_id
+    ");
+    $stmt->execute(['user_id' => $_SESSION['user_id']]);
+    $cart_items = $stmt->fetchAll();
+    
+    // Check if cart is empty
+    if (empty($cart_items)) {
+        $_SESSION['flash_message'] = "Your cart is empty. Please add some items before checkout.";
+        $_SESSION['flash_type'] = "yellow";
+        header('Location: index.php?page=cart');
+        exit;
+    }
+    
+    // Calculate totals
+    $subtotal = 0;
+    foreach ($cart_items as $item) {
+        $subtotal += $item['price'] * $item['quantity'];
+    }
+    $shipping = $subtotal >= 50 ? 0 : 4.99;
+    $total = $subtotal + $shipping;
+    
+} catch (PDOException $e) {
+    error_log("Checkout Error: " . $e->getMessage());
+    $_SESSION['flash_message'] = "An error occurred while loading your cart. Please try again.";
+    $_SESSION['flash_type'] = "red";
     header('Location: index.php?page=cart');
     exit;
 }
-
-// Calculate totals
-$subtotal = getCartTotal();
-$shipping = 5.99; // Fixed shipping cost
-$total = $subtotal + $shipping;
 ?>
 
 <div class="bg-white rounded-lg shadow-md p-6">
@@ -109,7 +131,7 @@ $total = $subtotal + $shipping;
                 
                 <!-- Cart Items -->
                 <div class="space-y-4 mb-6">
-                    <?php foreach ($_SESSION['cart'] as $item): ?>
+                    <?php foreach ($cart_items as $item): ?>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <div class="h-16 w-16 bg-gray-100 rounded overflow-hidden mr-4 flex-shrink-0">

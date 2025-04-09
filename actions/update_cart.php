@@ -6,6 +6,12 @@ require_once '../includes/functions.php';
 // Set content type to JSON
 header('Content-Type: application/json');
 
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Please login to update cart']);
+    exit;
+}
+
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get form data
@@ -21,62 +27,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    // Check if cart exists and has items
-    if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Cart is empty'
-        ]);
-        exit;
-    }
-    
-    // Find and update the product quantity in cart
-    $found = false;
-    foreach ($_SESSION['cart'] as &$item) {
-        if ($item['id'] == $product_id) {
-            if ($quantity == 0) {
-                // Remove item if quantity is 0
-                $key = array_search($item, $_SESSION['cart']);
-                if ($key !== false) {
-                    unset($_SESSION['cart'][$key]);
-                    $_SESSION['cart'] = array_values($_SESSION['cart']);
-                }
-            } else {
-                // Update quantity
-                $item['quantity'] = $quantity;
-            }
-            $found = true;
-            break;
+    try {
+        // Check if product exists and get its details
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
+        $stmt->execute(['id' => $product_id]);
+        $product = $stmt->fetch();
+        
+        if (!$product) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Product not found'
+            ]);
+            exit;
         }
-    }
-    
-    if ($found) {
-        // Log activity if user is logged in
-        if (isset($_SESSION['user_id'])) {
-            logUserActivity($_SESSION['user_id'], 'update_cart', [
+        
+        // Check stock
+        if ($product['stock_quantity'] < $quantity) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Not enough stock available'
+            ]);
+            exit;
+        }
+        
+        if ($quantity == 0) {
+            // Remove item from cart
+            $stmt = $pdo->prepare("DELETE FROM cart_items WHERE user_id = :user_id AND product_id = :product_id");
+            $stmt->execute([
+                'user_id' => $_SESSION['user_id'],
+                'product_id' => $product_id
+            ]);
+        } else {
+            // Update or insert cart item
+            $stmt = $pdo->prepare("
+                INSERT INTO cart_items (user_id, product_id, quantity)
+                VALUES (:user_id, :product_id, :quantity)
+                ON DUPLICATE KEY UPDATE quantity = :quantity
+            ");
+            
+            $stmt->execute([
+                'user_id' => $_SESSION['user_id'],
                 'product_id' => $product_id,
                 'quantity' => $quantity
             ]);
         }
         
+        // Log activity
+        logUserActivity($_SESSION['user_id'], 'update_cart', [
+            'product_id' => $product_id,
+            'quantity' => $quantity
+        ]);
+        
         echo json_encode([
             'success' => true,
-            'message' => 'Cart updated successfully',
-            'cart_count' => getCartItemsCount(),
-            'cart_total' => getCartTotal()
+            'message' => 'Cart updated successfully'
         ]);
-    } else {
+        
+    } catch (PDOException $e) {
+        error_log("Update Cart Error: " . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'message' => 'Product not found in cart'
+            'message' => 'Database error'
         ]);
     }
-    exit;
 } else {
     echo json_encode([
         'success' => false,
         'message' => 'Invalid request method'
     ]);
-    exit;
 }
 ?> 

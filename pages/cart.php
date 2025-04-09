@@ -1,7 +1,24 @@
+<?php
+// Get cart items from database
+try {
+    $stmt = $pdo->prepare("
+        SELECT ci.*, p.name, p.price, p.image 
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        WHERE ci.user_id = :user_id
+    ");
+    $stmt->execute(['user_id' => $_SESSION['user_id']]);
+    $cart_items = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log("Cart Error: " . $e->getMessage());
+    $cart_items = [];
+}
+?>
+
 <div class="bg-white rounded-lg shadow-md p-6">
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Shopping Cart</h1>
     
-    <?php if (empty($_SESSION['cart'])): ?>
+    <?php if (empty($cart_items)): ?>
     <div class="text-center py-8">
         <i class="fas fa-shopping-cart text-gray-300 text-5xl mb-4"></i>
         <p class="text-gray-500 mb-4">Your cart is empty</p>
@@ -24,7 +41,7 @@
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($_SESSION['cart'] as $index => $item): ?>
+                <?php foreach ($cart_items as $item): ?>
                 <tr class="border-b hover:bg-gray-50">
                     <td class="py-4 px-4">
                         <div class="flex items-center">
@@ -39,20 +56,20 @@
                             </div>
                             <div>
                                 <h3 class="font-medium text-gray-800"><?php echo $item['name']; ?></h3>
-                                <p class="text-gray-500 text-sm">Item #<?php echo $item['id']; ?></p>
+                                <p class="text-gray-500 text-sm">Item #<?php echo $item['product_id']; ?></p>
                             </div>
                         </div>
                     </td>
                     <td class="py-4 px-4 text-center">
                         <div class="flex items-center justify-center">
-                            <button onclick="updateCartItem(<?php echo $item['id']; ?>, <?php echo $item['quantity'] - 1; ?>)" 
+                            <button onclick="updateCartItem(<?php echo $item['product_id']; ?>, <?php echo $item['quantity'] - 1; ?>)" 
                                 class="bg-gray-200 hover:bg-gray-300 rounded-l px-2 py-1 transition-colors">
                                 <i class="fas fa-minus text-gray-600"></i>
                             </button>
                             <input type="number" value="<?php echo $item['quantity']; ?>" min="1" 
                                 class="w-12 text-center border-t border-b border-gray-200 py-1"
-                                onchange="updateCartItem(<?php echo $item['id']; ?>, this.value)">
-                            <button onclick="updateCartItem(<?php echo $item['id']; ?>, <?php echo $item['quantity'] + 1; ?>)" 
+                                onchange="updateCartItem(<?php echo $item['product_id']; ?>, this.value)">
+                            <button onclick="updateCartItem(<?php echo $item['product_id']; ?>, <?php echo $item['quantity'] + 1; ?>)" 
                                 class="bg-gray-200 hover:bg-gray-300 rounded-r px-2 py-1 transition-colors">
                                 <i class="fas fa-plus text-gray-600"></i>
                             </button>
@@ -61,7 +78,7 @@
                     <td class="py-4 px-4 text-right"><?php echo formatPrice($item['price']); ?></td>
                     <td class="py-4 px-4 text-right font-medium"><?php echo formatPrice($item['price'] * $item['quantity']); ?></td>
                     <td class="py-4 px-4 text-center">
-                        <button onclick="removeCartItem(<?php echo $item['id']; ?>)" 
+                        <button onclick="removeCartItem(<?php echo $item['product_id']; ?>)" 
                             class="text-red-500 hover:text-red-700 transition-colors">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -86,17 +103,24 @@
             <div class="bg-gray-50 p-4 rounded">
                 <h3 class="text-lg font-semibold mb-4">Order Summary</h3>
                 
+                <?php
+                $subtotal = 0;
+                foreach ($cart_items as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
+                }
+                ?>
+                
                 <div class="flex justify-between mb-2">
                     <span class="text-gray-600">Subtotal</span>
-                    <span class="font-medium"><?php echo formatPrice(getCartTotal()); ?></span>
+                    <span class="font-medium"><?php echo formatPrice($subtotal); ?></span>
                 </div>
                 
                 <div class="flex justify-between mb-2">
                     <span class="text-gray-600">Shipping</span>
-                    <span class="font-medium"><?php echo formatPrice(getCartTotal() >= 50 ? 0 : 4.99); ?></span>
+                    <span class="font-medium"><?php echo formatPrice($subtotal >= 50 ? 0 : 4.99); ?></span>
                 </div>
                 
-                <?php if (getCartTotal() >= 50): ?>
+                <?php if ($subtotal >= 50): ?>
                 <div class="flex justify-between mb-2 text-green-600">
                     <span>Free Shipping Discount</span>
                     <span>-<?php echo formatPrice(4.99); ?></span>
@@ -108,7 +132,7 @@
                 <div class="flex justify-between mb-4">
                     <span class="text-lg font-bold">Total</span>
                     <span class="text-lg font-bold text-primary">
-                        <?php echo formatPrice(getCartTotal() + (getCartTotal() >= 50 ? 0 : 4.99)); ?>
+                        <?php echo formatPrice($subtotal + ($subtotal >= 50 ? 0 : 4.99)); ?>
                     </span>
                 </div>
                 

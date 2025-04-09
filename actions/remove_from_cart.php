@@ -6,6 +6,12 @@ require_once '../includes/functions.php';
 // Set content type to JSON
 header('Content-Type: application/json');
 
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Please login to remove items from cart']);
+    exit;
+}
+
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get product ID
@@ -20,54 +26,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    // Check if cart exists and has items
-    if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Cart is empty'
+    try {
+        // Remove item from cart
+        $stmt = $pdo->prepare("DELETE FROM cart_items WHERE user_id = :user_id AND product_id = :product_id");
+        $stmt->execute([
+            'user_id' => $_SESSION['user_id'],
+            'product_id' => $product_id
         ]);
-        exit;
-    }
-    
-    // Find and remove the product from cart
-    $found = false;
-    foreach ($_SESSION['cart'] as $key => $item) {
-        if ($item['id'] == $product_id) {
-            unset($_SESSION['cart'][$key]);
-            $found = true;
-            break;
-        }
-    }
-    
-    // Reindex the cart array
-    $_SESSION['cart'] = array_values($_SESSION['cart']);
-    
-    if ($found) {
-        // Log activity if user is logged in
-        if (isset($_SESSION['user_id'])) {
-            logUserActivity($_SESSION['user_id'], 'remove_from_cart', [
-                'product_id' => $product_id
-            ]);
-        }
+        
+        // Log activity
+        logUserActivity($_SESSION['user_id'], 'remove_from_cart', [
+            'product_id' => $product_id
+        ]);
         
         echo json_encode([
             'success' => true,
-            'message' => 'Product removed from cart',
-            'cart_count' => getCartItemsCount(),
-            'cart_total' => getCartTotal()
+            'message' => 'Product removed from cart'
         ]);
-    } else {
+        
+    } catch (PDOException $e) {
+        error_log("Remove from Cart Error: " . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'message' => 'Product not found in cart'
+            'message' => 'Database error'
         ]);
     }
-    exit;
 } else {
     echo json_encode([
         'success' => false,
         'message' => 'Invalid request method'
     ]);
-    exit;
 }
 ?> 
