@@ -207,6 +207,15 @@ if (empty($categories)) {
                 <h3 class="font-semibold text-lg mb-3">Search</h3>
                 <form action="index.php" method="get" class="mb-4">
                     <input type="hidden" name="page" value="medications">
+                    <?php if (!empty($category)): ?>
+                    <input type="hidden" name="category" value="<?php echo htmlspecialchars($category); ?>">
+                    <?php endif; ?>
+                    <?php if ($requires_prescription >= 0): ?>
+                    <input type="hidden" name="prescription" value="<?php echo $requires_prescription; ?>">
+                    <?php endif; ?>
+                    <?php if (!empty($sort)): ?>
+                    <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sort); ?>">
+                    <?php endif; ?>
                     <div class="flex">
                         <input type="text" name="search" placeholder="Search medications..." 
                             value="<?php echo htmlspecialchars($search); ?>"
