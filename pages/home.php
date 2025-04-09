@@ -80,28 +80,28 @@
                         'id' => 1,
                         'name' => 'Paracetamol 500mg',
                         'price' => 5.99,
-                        'image' => 'assets/images/products/paracetamol.jpg',
+                        'image' => 'images/para.jpg',
                         'category' => 'medications'
                     ],
                     [
                         'id' => 2,
                         'name' => 'Vitamin C Complex',
                         'price' => 12.50,
-                        'image' => 'assets/images/products/vitamin-c.jpg',
+                        'image' => 'images/healthproducts.jpg',
                         'category' => 'health-products'
                     ],
                     [
                         'id' => 3,
                         'name' => 'Digital Thermometer',
                         'price' => 15.75,
-                        'image' => 'assets/images/products/thermometer.jpg',
+                        'image' => 'images/healthproducts.jpg',
                         'category' => 'health-products'
                     ],
                     [
                         'id' => 4,
                         'name' => 'Ibuprofen 400mg',
                         'price' => 6.99,
-                        'image' => 'assets/images/products/ibuprofen.jpg',
+                        'image' => 'images/medications.jpg',
                         'category' => 'medications'
                     ]
                 ];
@@ -109,11 +109,15 @@
                 foreach ($placeholder_products as $product):
             ?>
                 <div class="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1">
-                    <div class="h-48 bg-gray-200 overflow-hidden">
-                        <div class="h-full flex items-center justify-center text-gray-500">
-                            <i class="fas fa-image text-4xl"></i>
+                    <a href="index.php?page=product&id=<?php echo $product['id']; ?>">
+                        <?php if (isset($product['image']) && !empty($product['image'])): ?>
+                        <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="w-full h-48 object-cover">
+                        <?php else: ?>
+                        <div class="h-48 bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-image text-gray-400 text-4xl"></i>
                         </div>
-                    </div>
+                        <?php endif; ?>
+                    </a>
                     <div class="p-4">
                         <h3 class="text-lg font-semibold mb-2"><?php echo $product['name']; ?></h3>
                         <div class="flex justify-between items-center">
@@ -161,10 +165,11 @@
             <a href="index.php?page=medications" class="group">
                 <div class="relative overflow-hidden rounded-lg shadow-md">
                     <div class="h-64 bg-gray-200 group-hover:opacity-90 transition-opacity">
+                        <img src="images/medications.jpg" alt="Medications" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-6">
                             <h3 class="text-2xl font-bold text-white">Medications</h3>
-                            <p class="text-gray-200 mt-2">Prescription and over-the-counter medications for various conditions</p>
+                            <p class="text-gray-200 mt-2">Prescription and over-the-counter medications for your health needs</p>
                         </div>
                     </div>
                 </div>
@@ -174,6 +179,7 @@
             <a href="index.php?page=health-products" class="group">
                 <div class="relative overflow-hidden rounded-lg shadow-md">
                     <div class="h-64 bg-gray-200 group-hover:opacity-90 transition-opacity">
+                        <img src="images/healthproducts.jpg" alt="Health Products" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-6">
                             <h3 class="text-2xl font-bold text-white">Health Products</h3>
@@ -187,10 +193,11 @@
             <a href="index.php?page=prescription" class="group">
                 <div class="relative overflow-hidden rounded-lg shadow-md">
                     <div class="h-64 bg-gray-200 group-hover:opacity-90 transition-opacity">
+                        <img src="images/doctor.jpg" alt="Prescription" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-6">
                             <h3 class="text-2xl font-bold text-white">Prescription</h3>
-                            <p class="text-gray-200 mt-2">Upload your prescription and get your medications</p>
+                            <p class="text-gray-200 mt-2">Upload your prescription and get your medications delivered</p>
                         </div>
                     </div>
                 </div>

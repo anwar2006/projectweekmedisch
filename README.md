@@ -105,9 +105,9 @@ A Node.js chatbot powered by Mistral AI for the Apothecare platform.
 
 1. Make sure you have Node.js installed on your system
 2. Install dependencies:
-   ```bash
+
    npm install
-   ```
+   
 3. Create a `.env` file in the root directory with your Mistral AI API key:
    ```
    MISTRAL_API_KEY=your_api_key_here
@@ -115,10 +115,10 @@ A Node.js chatbot powered by Mistral AI for the Apothecare platform.
    ```
 
 ## Running the Chatbot
+
 cd api/chatbot
 
 1. Start the server:
-   ```bash
    node index.js
 
    ```

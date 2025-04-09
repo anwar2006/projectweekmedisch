@@ -2,12 +2,40 @@
 // Get product ID from URL
 $product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Get product details
-$product = getProductById($product_id);
+try {
+    // Get product details
+    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
+    $stmt->execute(['id' => $product_id]);
+    $product = $stmt->fetch();
+    
+    // Check if user has approved prescription for this product
+    $has_approved_prescription = false;
+    if (isset($_SESSION['user_id']) && $product && $product['requires_prescription']) {
+        $prescription_stmt = $pdo->prepare("
+            SELECT id 
+            FROM prescriptions 
+            WHERE user_id = :user_id 
+            AND product_id = :product_id 
+            AND status = 'approved'
+        ");
+        $prescription_stmt->execute([
+            'user_id' => $_SESSION['user_id'],
+            'product_id' => $product_id
+        ]);
+        $has_approved_prescription = $prescription_stmt->fetch() !== false;
+    }
+    
+} catch (PDOException $e) {
+    $product = null;
+    $has_approved_prescription = false;
+    error_log("Product Error: " . $e->getMessage());
+}
 
-// If product not found, redirect to 404 page
+// If product not found, redirect to home
 if (!$product) {
-    header('Location: index.php?page=404');
+    $_SESSION['flash_message'] = "Product not found.";
+    $_SESSION['flash_type'] = "red";
+    header('Location: index.php');
     exit;
 }
 
@@ -41,72 +69,79 @@ $related_products = array_slice($related_products, 0, 4);
     </nav>
 
     <!-- Product Details -->
-    <div class="flex flex-col md:flex-row gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Product Image -->
-        <div class="w-full md:w-1/2">
+        <div>
             <?php if (isset($product['image']) && !empty($product['image'])): ?>
-            <div class="rounded-lg overflow-hidden shadow-md">
-                <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="w-full h-auto">
-            </div>
+            <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="w-full rounded-lg">
             <?php else: ?>
-            <div class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-                <i class="fas <?php echo $product['category'] === 'medications' ? 'fa-pills' : 'fa-heartbeat'; ?> text-gray-400 text-6xl"></i>
+            <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                <i class="fas fa-image text-gray-400 text-4xl"></i>
             </div>
             <?php endif; ?>
         </div>
-
-        <!-- Product Info -->
-        <div class="w-full md:w-1/2">
-            <h1 class="text-3xl font-bold text-gray-800 mb-4"><?php echo $product['name']; ?></h1>
+        
+        <!-- Product Details -->
+        <div>
+            <h1 class="text-2xl font-bold mb-4"><?php echo $product['name']; ?></h1>
             
-            <div class="text-2xl font-bold text-primary mb-6">
-                <?php echo formatPrice($product['price']); ?>
+            <div class="mb-4">
+                <span class="text-2xl font-bold text-primary"><?php echo formatPrice($product['price']); ?></span>
             </div>
-
+            
             <?php if ($product['requires_prescription']): ?>
-            <div class="flex items-center text-orange-500 text-sm mb-4">
-                <i class="fas fa-file-prescription mr-2"></i> 
-                This medication requires a prescription
-            </div>
-            <?php endif; ?>
-
-            <div class="prose max-w-none mb-6">
-                <p class="text-gray-600"><?php echo $product['description']; ?></p>
-            </div>
-
-            <?php if ($product['stock_quantity'] > 0): ?>
-            <div class="mb-6">
-                <span class="text-green-500">
-                    <i class="fas fa-check-circle mr-2"></i> In Stock
-                </span>
-                <span class="text-gray-500 text-sm ml-2">(<?php echo $product['stock_quantity']; ?> available)</span>
-            </div>
-
-            <div class="flex items-center gap-4">
-                <div class="w-24">
-                    <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input type="number" id="quantity" name="quantity" min="1" max="<?php echo $product['stock_quantity']; ?>" value="1"
-                        class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary">
-                </div>
-
-                <?php if ($product['requires_prescription']): ?>
-                <a href="index.php?page=prescription&product_id=<?php echo $product['id']; ?>" 
-                    class="flex-grow bg-primary hover:bg-dark text-white px-6 py-3 rounded-lg text-center transition-colors">
-                    <i class="fas fa-prescription mr-2"></i> Request Prescription
-                </a>
+            <div class="mb-4">
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php if ($has_approved_prescription): ?>
+                        <div class="text-green-600 mb-2">
+                            <i class="fas fa-check-circle mr-1"></i> Your prescription has been approved
+                        </div>
+                    <?php else: ?>
+                        <div class="text-orange-500 mb-2">
+                            <i class="fas fa-exclamation-circle mr-1"></i> This medication requires a prescription
+                        </div>
+                        <a href="index.php?page=prescription&product_id=<?php echo $product_id; ?>" 
+                           class="inline-block bg-primary text-white px-4 py-2 rounded hover:bg-dark transition-colors">
+                            Upload Prescription
+                        </a>
+                    <?php endif; ?>
                 <?php else: ?>
-                <button onclick="addToCartWithQuantity(<?php echo $product['id']; ?>)" 
-                    class="flex-grow bg-accent hover:bg-primary text-white px-6 py-3 rounded-lg transition-colors">
-                    <i class="fas fa-cart-plus mr-2"></i> Add to Cart
-                </button>
+                    <div class="text-orange-500 mb-2">
+                        <i class="fas fa-exclamation-circle mr-1"></i> This medication requires a prescription
+                    </div>
+                    <a href="index.php?page=login" 
+                       class="inline-block bg-primary text-white px-4 py-2 rounded hover:bg-dark transition-colors">
+                        Login to Upload Prescription
+                    </a>
                 <?php endif; ?>
             </div>
-            <?php else: ?>
-            <div class="mb-6">
-                <span class="text-red-500">
-                    <i class="fas fa-times-circle mr-2"></i> Out of Stock
-                </span>
+            <?php endif; ?>
+            
+            <div class="mb-4">
+                <h2 class="font-semibold mb-2">Description</h2>
+                <p class="text-gray-600"><?php echo nl2br($product['description']); ?></p>
             </div>
+            
+            <?php if ($product['stock_quantity'] > 0): ?>
+                <?php if (!$product['requires_prescription'] || (isset($_SESSION['user_id']) && $has_approved_prescription)): ?>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center border rounded">
+                        <button onclick="updateQuantity(-1)" class="px-3 py-1 hover:bg-gray-100">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
+                            class="w-16 text-center border-x">
+                        <button onclick="updateQuantity(1)" class="px-3 py-1 hover:bg-gray-100">+</button>
+                    </div>
+                    
+                    <button onclick="addToCart(<?php echo $product_id; ?>)" 
+                        class="bg-primary text-white px-6 py-2 rounded hover:bg-dark transition-colors">
+                        Add to Cart
+                    </button>
+                </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <div class="text-red-500">
+                    <i class="fas fa-times-circle mr-1"></i> Out of stock
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -161,14 +196,19 @@ $related_products = array_slice($related_products, 0, 4);
 </div>
 
 <script>
-function addToCartWithQuantity(productId) {
-    const quantity = parseInt(document.getElementById('quantity').value);
-    if (isNaN(quantity) || quantity < 1) {
-        alert('Please enter a valid quantity');
-        return;
+function updateQuantity(change) {
+    const input = document.getElementById('quantity');
+    const newValue = parseInt(input.value) + change;
+    const max = parseInt(input.getAttribute('max'));
+    
+    if (newValue >= 1 && newValue <= max) {
+        input.value = newValue;
     }
+}
 
-    // Using the Fetch API to add product to cart
+function addToCart(productId) {
+    const quantity = document.getElementById('quantity').value;
+    
     fetch('actions/add_to_cart.php', {
         method: 'POST',
         headers: {
@@ -179,30 +219,15 @@ function addToCartWithQuantity(productId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show success message
             alert('Product added to cart!');
-            // Reload the page to update cart count
             location.reload();
         } else {
-            if (data.redirect) {
-                if (data.redirect === 'login') {
-                    window.location.href = 'index.php?page=login';
-                } else if (data.redirect === 'prescription') {
-                    window.location.href = 'index.php?page=prescription&product_id=' + productId;
-                }
-            } else {
-                // Show error message
-                alert(data.message || 'Error adding product to cart');
-            }
+            alert(data.message || 'Error adding product to cart');
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('An error occurred. Please try again.');
     });
-}
-
-function addToCart(productId) {
-    addToCartWithQuantity(productId);
 }
 </script> 

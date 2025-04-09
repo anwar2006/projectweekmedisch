@@ -3,114 +3,78 @@ session_start();
 require_once '../config/database.php';
 require_once '../includes/functions.php';
 
-// Set content type to JSON
-header('Content-Type: application/json');
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Please login to add items to cart']);
+    exit;
+}
 
-// Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get form data
     $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
     $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
     
-    // Validate input
-    if ($product_id <= 0 || $quantity <= 0) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Invalid product or quantity'
-        ]);
-        exit;
-    }
-    
     try {
         // Get product details
-        $product = getProductById($product_id);
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
+        $stmt->execute(['id' => $product_id]);
+        $product = $stmt->fetch();
         
         if (!$product) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Product not found'
-            ]);
+            echo json_encode(['success' => false, 'message' => 'Product not found']);
             exit;
         }
         
         // Check if product requires prescription
-        if (requiresPrescription($product_id)) {
-            // Check if user is logged in
-            if (!isset($_SESSION['user_id'])) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'You need to login to purchase prescription medications',
-                    'redirect' => 'login'
-                ]);
-                exit;
-            }
+        if ($product['requires_prescription']) {
+            // Check if user has approved prescription
+            $prescription_stmt = $pdo->prepare("
+                SELECT id 
+                FROM prescriptions 
+                WHERE user_id = :user_id 
+                AND product_id = :product_id 
+                AND status = 'approved'
+            ");
+            $prescription_stmt->execute([
+                'user_id' => $_SESSION['user_id'],
+                'product_id' => $product_id
+            ]);
             
-            // Check if user has a valid prescription
-            if (!hasValidPrescription($_SESSION['user_id'], $product_id)) {
+            if (!$prescription_stmt->fetch()) {
                 echo json_encode([
-                    'success' => false,
-                    'message' => 'This product requires a valid prescription',
+                    'success' => false, 
+                    'message' => 'This medication requires an approved prescription',
                     'redirect' => 'prescription'
                 ]);
                 exit;
             }
         }
         
-        // Initialize cart if not exists
-        if (!isset($_SESSION['cart'])) {
-            $_SESSION['cart'] = [];
+        // Check stock
+        if ($product['stock_quantity'] < $quantity) {
+            echo json_encode(['success' => false, 'message' => 'Not enough stock available']);
+            exit;
         }
         
-        // Check if product already in cart
-        $product_in_cart = false;
-        foreach ($_SESSION['cart'] as &$item) {
-            if ($item['id'] == $product_id) {
-                $item['quantity'] += $quantity;
-                $product_in_cart = true;
-                break;
-            }
-        }
+        // Add to cart
+        $stmt = $pdo->prepare("
+            INSERT INTO cart_items (user_id, product_id, quantity, created_at)
+            VALUES (:user_id, :product_id, :quantity, NOW())
+            ON DUPLICATE KEY UPDATE quantity = quantity + :quantity
+        ");
         
-        // If product not in cart, add it
-        if (!$product_in_cart) {
-            $_SESSION['cart'][] = [
-                'id' => $product_id,
-                'name' => $product['name'],
-                'price' => $product['price'],
-                'image' => $product['image'],
-                'quantity' => $quantity
-            ];
-        }
-        
-        // Log activity if user is logged in
-        if (isset($_SESSION['user_id'])) {
-            logUserActivity($_SESSION['user_id'], 'add_to_cart', [
-                'product_id' => $product_id,
-                'product_name' => $product['name'],
-                'quantity' => $quantity
-            ]);
-        }
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Product added to cart',
-            'cart_count' => getCartItemsCount(),
-            'cart_total' => getCartTotal()
+        $stmt->execute([
+            'user_id' => $_SESSION['user_id'],
+            'product_id' => $product_id,
+            'quantity' => $quantity
         ]);
-        exit;
         
-    } catch (Exception $e) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'An error occurred. Please try again.'
-        ]);
-        exit;
+        echo json_encode(['success' => true]);
+        
+    } catch (PDOException $e) {
+        error_log("Add to Cart Error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error']);
     }
 } else {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Invalid request method'
-    ]);
-    exit;
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 }
 ?> 

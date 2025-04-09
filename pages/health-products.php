@@ -71,7 +71,7 @@ if (empty($products)) {
             'name' => 'Vitamin C 1000mg',
             'price' => 12.50,
             'description' => 'Supports immune system health. 60 tablets.',
-            'image' => 'assets/images/products/vitamin-c.jpg',
+            'image' => 'images/vitamin-c.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 65
         ],
@@ -80,7 +80,7 @@ if (empty($products)) {
             'name' => 'Multivitamin Daily',
             'price' => 16.95,
             'description' => 'Complete daily multivitamin. 90 tablets.',
-            'image' => 'assets/images/products/multivitamin.jpg',
+            'image' => 'images/multivitamin.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 55
         ],
@@ -89,7 +89,7 @@ if (empty($products)) {
             'name' => 'Omega-3 Fish Oil',
             'price' => 14.25,
             'description' => 'Supports heart and brain health. 60 capsules.',
-            'image' => 'assets/images/products/omega-3.jpg',
+            'image' => 'images/omega-3.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 48
         ],
@@ -98,7 +98,7 @@ if (empty($products)) {
             'name' => 'Digital Thermometer',
             'price' => 15.75,
             'description' => 'Accurate digital thermometer for body temperature readings.',
-            'image' => 'assets/images/products/thermometer.jpg',
+            'image' => 'images/thermometer.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 35
         ],
@@ -107,7 +107,7 @@ if (empty($products)) {
             'name' => 'Blood Pressure Monitor',
             'price' => 49.99,
             'description' => 'Digital blood pressure monitor for home use.',
-            'image' => 'assets/images/products/bp-monitor.jpg',
+            'image' => 'images/bp-monitor.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 18
         ],
@@ -116,7 +116,7 @@ if (empty($products)) {
             'name' => 'First Aid Kit',
             'price' => 24.99,
             'description' => 'Comprehensive first aid kit for home use.',
-            'image' => 'assets/images/products/first-aid.jpg',
+            'image' => 'images/first-aid.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 25
         ]

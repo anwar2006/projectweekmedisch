@@ -63,10 +63,49 @@ try {
     $cat_stmt = $pdo->query("SELECT * FROM categories ORDER BY name");
     $categories = $cat_stmt->fetchAll();
     
+    // Get user's approved prescriptions if logged in
+    $approved_prescriptions = [];
+    if (isset($_SESSION['user_id'])) {
+        // Debug: Log user ID
+        error_log("Checking prescriptions for user ID: " . $_SESSION['user_id']);
+        
+        // First, let's check if there are any prescriptions at all for this user
+        $check_stmt = $pdo->prepare("SELECT COUNT(*) FROM prescriptions WHERE user_id = :user_id");
+        $check_stmt->execute(['user_id' => $_SESSION['user_id']]);
+        $prescription_count = $check_stmt->fetchColumn();
+        error_log("Total prescriptions for user: " . $prescription_count);
+        
+        // Now get all prescriptions with details for debugging
+        $debug_stmt = $pdo->prepare("
+            SELECT id, product_id, status, expiry_date 
+            FROM prescriptions 
+            WHERE user_id = :user_id
+        ");
+        $debug_stmt->execute(['user_id' => $_SESSION['user_id']]);
+        $all_prescriptions = $debug_stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("All prescriptions for user: " . print_r($all_prescriptions, true));
+        
+        // Get approved prescriptions
+        $prescription_stmt = $pdo->prepare("
+            SELECT product_id 
+            FROM prescriptions 
+            WHERE user_id = :user_id 
+            AND status = 'approved'
+            AND (expiry_date IS NULL OR expiry_date >= CURDATE())
+            AND product_id IS NOT NULL
+        ");
+        $prescription_stmt->execute(['user_id' => $_SESSION['user_id']]);
+        $approved_prescriptions = $prescription_stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Debug: Log approved prescriptions
+        error_log("Approved prescriptions: " . print_r($approved_prescriptions, true));
+    }
+    
 } catch (PDOException $e) {
     // If tables don't exist yet or there's an error, use sample data
     $medications = [];
     $categories = [];
+    $approved_prescriptions = [];
     
     // Log error
     error_log("Medications Error: " . $e->getMessage());
@@ -80,7 +119,7 @@ if (empty($medications)) {
             'name' => 'Paracetamol 500mg',
             'price' => 5.99,
             'description' => 'Pain relief tablets for headaches, pain and fever. Pack of 16 tablets.',
-            'image' => 'assets/images/products/prd-front-5568144-2-600x600.jpg',
+            'image' => 'images/para.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 50
         ],
@@ -89,7 +128,7 @@ if (empty($medications)) {
             'name' => 'Ibuprofen 400mg',
             'price' => 6.99,
             'description' => 'Anti-inflammatory pain relief. Pack of 24 tablets.',
-            'image' => 'assets/images/products/ibuprofen.jpg',
+            'image' => 'images/medications.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 45
         ],
@@ -98,7 +137,7 @@ if (empty($medications)) {
             'name' => 'Amoxicillin 250mg',
             'price' => 12.99,
             'description' => 'Antibiotic medication. Pack of 21 capsules.',
-            'image' => 'assets/images/products/amoxicillin.jpg',
+            'image' => 'images/medications.jpg',
             'requires_prescription' => 1,
             'stock_quantity' => 30
         ],
@@ -107,7 +146,7 @@ if (empty($medications)) {
             'name' => 'Cetirizine 10mg',
             'price' => 7.50,
             'description' => 'Antihistamine for allergy relief. Pack of 30 tablets.',
-            'image' => 'assets/images/products/cetirizine.jpg',
+            'image' => 'images/medications.jpg',
             'requires_prescription' => 0,
             'stock_quantity' => 40
         ],
@@ -116,7 +155,7 @@ if (empty($medications)) {
             'name' => 'Fluoxetine 20mg',
             'price' => 14.99,
             'description' => 'Antidepressant medication. Pack of 28 capsules.',
-            'image' => 'assets/images/products/fluoxetine.jpg',
+            'image' => 'images/medications.jpg',
             'requires_prescription' => 1,
             'stock_quantity' => 25
         ],
@@ -125,7 +164,7 @@ if (empty($medications)) {
             'name' => 'Salbutamol Inhaler',
             'price' => 18.75,
             'description' => 'Relieves asthma symptoms. 200 doses.',
-            'image' => 'assets/images/products/salbutamol.jpg',
+            'image' => 'images/medications.jpg',
             'requires_prescription' => 1,
             'stock_quantity' => 20
         ]
@@ -299,7 +338,46 @@ if (empty($categories)) {
                         
                         <?php if ($medication['requires_prescription']): ?>
                         <div class="flex items-center text-orange-500 text-sm mb-3">
-                            <i class="fas fa-file-prescription mr-1"></i> Prescription required
+                            <i class="fas fa-file-prescription mr-1"></i> 
+                            <?php 
+                            // Check if this specific medication has an approved prescription
+                            $has_approved_prescription = false;
+                            if (isset($_SESSION['user_id'])) {
+                                $specific_check = $pdo->prepare("
+                                    SELECT COUNT(*) 
+                                    FROM prescriptions 
+                                    WHERE user_id = :user_id 
+                                    AND product_id = :product_id 
+                                    AND status = 'approved'
+                                    AND (expiry_date IS NULL OR expiry_date >= CURDATE())
+                                ");
+                                $specific_check->execute([
+                                    'user_id' => $_SESSION['user_id'],
+                                    'product_id' => $medication['id']
+                                ]);
+                                $has_approved_prescription = $specific_check->fetchColumn() > 0;
+                            }
+                            
+                            if (isset($_SESSION['user_id']) && $has_approved_prescription): 
+                            ?>
+                                <span class="text-green-600">Prescription approved</span>
+                                <button onclick="addToCart(<?php echo $medication['id']; ?>)" 
+                                    class="ml-2 bg-primary text-white px-3 py-1 rounded hover:bg-dark transition-colors">
+                                    Add to Cart
+                                </button>
+                            <?php else: ?>
+                                <span>Prescription required</span>
+                                <?php if (isset($_SESSION['user_id'])): ?>
+                                    <a href="index.php?page=prescription&product_id=<?php echo $medication['id']; ?>" 
+                                       class="ml-2 text-primary hover:text-dark">
+                                        Upload Prescription
+                                    </a>
+                                <?php else: ?>
+                                    <a href="index.php?page=login" class="ml-2 text-primary hover:text-dark">
+                                        Login to Upload
+                                    </a>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </div>
                         <?php endif; ?>
                         
@@ -308,13 +386,19 @@ if (empty($categories)) {
                             
                             <?php if ($medication['stock_quantity'] > 0): ?>
                                 <?php if ($medication['requires_prescription']): ?>
-                                <a href="index.php?page=prescription&product_id=<?php echo $medication['id']; ?>" class="bg-primary hover:bg-dark text-white px-3 py-1 rounded-full text-sm transition-colors">
-                                    <i class="fas fa-prescription mr-1"></i> Request
-                                </a>
+                                    <?php if (isset($_SESSION['user_id']) && $has_approved_prescription): ?>
+                                        <button onclick="addToCart(<?php echo $medication['id']; ?>)" class="bg-accent hover:bg-primary text-white px-3 py-1 rounded-full text-sm transition-colors">
+                                            <i class="fas fa-cart-plus mr-1"></i> Add
+                                        </button>
+                                    <?php else: ?>
+                                        <a href="index.php?page=prescription&product_id=<?php echo $medication['id']; ?>" class="bg-primary hover:bg-dark text-white px-3 py-1 rounded-full text-sm transition-colors">
+                                            <i class="fas fa-prescription mr-1"></i> Request
+                                        </a>
+                                    <?php endif; ?>
                                 <?php else: ?>
-                                <button onclick="addToCart(<?php echo $medication['id']; ?>)" class="bg-accent hover:bg-primary text-white px-3 py-1 rounded-full text-sm transition-colors">
-                                    <i class="fas fa-cart-plus mr-1"></i> Add
-                                </button>
+                                    <button onclick="addToCart(<?php echo $medication['id']; ?>)" class="bg-accent hover:bg-primary text-white px-3 py-1 rounded-full text-sm transition-colors">
+                                        <i class="fas fa-cart-plus mr-1"></i> Add
+                                    </button>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <span class="text-red-500 text-sm">Out of stock</span>
